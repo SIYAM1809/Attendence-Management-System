@@ -33,7 +33,7 @@ function App() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="employees" element={<ProtectedRoute roles={['Admin', 'HR']}><Employees /></ProtectedRoute>} />
+          <Route path="employees" element={<ProtectedRoute roles={['Admin']}><Employees /></ProtectedRoute>} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="leaves" element={<Leaves />} />
         </Route>

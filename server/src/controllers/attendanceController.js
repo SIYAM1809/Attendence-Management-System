@@ -36,7 +36,7 @@ const checkIn = async (req, res) => {
 
             // Send Late Notification Email asynchronously
             if (lateDuration > 0) {
-                const message = `Dear ${req.user.name},\n\nYou checked in late today.\nCheck-in time: ${now.toLocaleTimeString()}\nOffice start time: ${req.user.shiftStartTime}\nLate duration: ${lateDuration} minutes.\n\nPlease ensure punctuality.\n\nRegards,\nHR Department`;
+                const message = `Dear ${req.user.name},\n\nYou checked in late today.\nCheck-in time: ${now.toLocaleTimeString()}\nOffice start time: ${req.user.shiftStartTime}\nLate duration: ${lateDuration} minutes.\n\nPlease ensure punctuality.\n\nRegards,\nAdmin`;
                 
                 sendEmail({
                     email: req.user.email,
@@ -104,7 +104,7 @@ const getMyAttendance = async (req, res) => {
 
 // @desc    Get all attendance (Admin/HR)
 // @route   GET /api/attendance
-// @access  Private/Admin or HR
+// @access  Private/Admin
 const getAllAttendance = async (req, res) => {
     try {
         const attendance = await Attendance.find({}).populate('employeeId', 'name email department designation').sort({ date: -1 });

@@ -21,13 +21,7 @@ const protect = async (req, res, next) => {
     }
 };
 
-const adminOrHR = (req, res, next) => {
-    if (req.user && (req.user.role === 'Admin' || req.user.role === 'HR')) {
-        next();
-    } else {
-        res.status(403).json({ message: 'Not authorized as an Admin or HR' });
-    }
-};
+
 
 const adminOnly = (req, res, next) => {
     if (req.user && req.user.role === 'Admin') {
@@ -37,4 +31,4 @@ const adminOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, adminOrHR, adminOnly };
+module.exports = { protect, adminOnly };

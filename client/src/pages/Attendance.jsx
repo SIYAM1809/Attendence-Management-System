@@ -7,11 +7,12 @@ import { LogIn, LogOut, Download } from 'lucide-react';
 const Attendance = () => {
     const [attendanceLogs, setAttendanceLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedEmployee, setSelectedEmployee] = useState('');
     const { user } = useContext(AuthContext);
 
     const fetchAttendance = async () => {
         try {
-            const endpoint = (user.role === 'Admin' || user.role === 'HR') ? '/attendance' : '/attendance/my';
+            const endpoint = user.role === 'Admin' ? '/attendance' : '/attendance/my';
             const res = await api.get(endpoint);
             setAttendanceLogs(res.data);
         } catch (error) {
@@ -64,6 +65,14 @@ const Attendance = () => {
         document.body.removeChild(link);
     };
 
+    const uniqueEmployees = Array.from(
+        new Set(attendanceLogs.filter(log => log.employeeId).map(log => log.employeeId._id))
+    ).map(id => attendanceLogs.find(log => log.employeeId?._id === id)?.employeeId);
+
+    const filteredLogs = selectedEmployee 
+        ? attendanceLogs.filter(log => log.employeeId?._id === selectedEmployee)
+        : attendanceLogs;
+
     if (loading) return <div>Loading attendance logs...</div>;
 
     return (
@@ -74,7 +83,20 @@ const Attendance = () => {
                     <p style={{ color: 'var(--text-muted)' }}>Track daily check-ins and check-outs</p>
                 </div>
                 
-                <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    {user.role === 'Admin' && (
+                        <select 
+                            className="input-field" 
+                            style={{ width: 'auto', margin: 0, padding: '8px 16px', height: '40px' }}
+                            value={selectedEmployee} 
+                            onChange={(e) => setSelectedEmployee(e.target.value)}
+                        >
+                            <option value="">All Employees</option>
+                            {uniqueEmployees.map(emp => (
+                                <option key={emp._id} value={emp._id}>{emp.name}</option>
+                            ))}
+                        </select>
+                    )}
                     <button onClick={downloadCSV} className="btn" style={{ background: 'rgba(59, 130, 246, 0.2)', color: 'var(--primary)' }}>
                         <Download size={20} /> Export CSV
                     </button>
@@ -92,7 +114,7 @@ const Attendance = () => {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            {(user.role === 'Admin' || user.role === 'HR') && <th>Employee</th>}
+                            {user.role === 'Admin' && <th>Employee</th>}
                             <th>Check In</th>
                             <th>Check Out</th>
                             <th>Status</th>
@@ -100,10 +122,10 @@ const Attendance = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {attendanceLogs.map(log => (
+                        {filteredLogs.map(log => (
                             <tr key={log._id}>
                                 <td>{format(new Date(log.date), 'MMM dd, yyyy')}</td>
-                                {(user.role === 'Admin' || user.role === 'HR') && (
+                                {user.role === 'Admin' && (
                                     <td style={{ fontWeight: '500' }}>{log.employeeId?.name}</td>
                                 )}
                                 <td>{log.checkIn ? format(new Date(log.checkIn), 'hh:mm a') : '--'}</td>

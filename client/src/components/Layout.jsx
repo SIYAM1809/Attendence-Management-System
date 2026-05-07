@@ -6,13 +6,15 @@ import { LayoutDashboard, Users, Clock, CalendarDays, LogOut } from 'lucide-reac
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
 
+    const isAdmin = user?.role === 'Admin';
+
     const navItems = [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'My Attendance', path: '/attendance', icon: Clock },
-        { name: 'My Leaves', path: '/leaves', icon: CalendarDays },
+        { name: isAdmin ? 'Attendance' : 'My Attendance', path: '/attendance', icon: Clock },
+        { name: isAdmin ? 'Leaves' : 'My Leaves', path: '/leaves', icon: CalendarDays },
     ];
 
-    if (user?.role === 'Admin' || user?.role === 'HR') {
+    if (isAdmin) {
         navItems.splice(1, 0, { name: 'Employees', path: '/employees', icon: Users });
     }
 

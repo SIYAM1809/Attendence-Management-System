@@ -35,7 +35,7 @@ const getMyLeaves = async (req, res) => {
 
 // @desc    Get all leaves
 // @route   GET /api/leaves
-// @access  Private/Admin or HR
+// @access  Private/Admin
 const getAllLeaves = async (req, res) => {
     try {
         const leaves = await Leave.find({}).populate('employeeId', 'name email').sort({ createdAt: -1 });
@@ -47,7 +47,7 @@ const getAllLeaves = async (req, res) => {
 
 // @desc    Update leave status (Approve/Reject)
 // @route   PUT /api/leaves/:id
-// @access  Private/Admin or HR
+// @access  Private/Admin
 const updateLeaveStatus = async (req, res) => {
     try {
         const { status } = req.body; // 'Approved' or 'Rejected'

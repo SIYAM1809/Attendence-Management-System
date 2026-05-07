@@ -2,7 +2,7 @@ const User = require('../models/User');
 
 // @desc    Get all employees
 // @route   GET /api/employees
-// @access  Private/Admin or HR
+// @access  Private/Admin
 const getEmployees = async (req, res) => {
     try {
         const employees = await User.find({}).select('-password');
@@ -14,7 +14,7 @@ const getEmployees = async (req, res) => {
 
 // @desc    Get employee by ID
 // @route   GET /api/employees/:id
-// @access  Private/Admin or HR
+// @access  Private/Admin
 const getEmployeeById = async (req, res) => {
     try {
         const employee = await User.findById(req.params.id).select('-password');
@@ -75,6 +75,9 @@ const updateEmployee = async (req, res) => {
         const employee = await User.findById(req.params.id);
 
         if (employee) {
+            if (req.user.role === 'HR' && employee.role === 'Admin') {
+                return res.status(403).json({ message: 'HR cannot modify Admin users' });
+            }
             employee.name = req.body.name || employee.name;
             employee.email = req.body.email || employee.email;
             employee.role = req.body.role || employee.role;
@@ -113,6 +116,9 @@ const deleteEmployee = async (req, res) => {
         const employee = await User.findById(req.params.id);
 
         if (employee) {
+            if (req.user.role === 'HR' && employee.role === 'Admin') {
+                return res.status(403).json({ message: 'HR cannot delete Admin users' });
+            }
             await User.deleteOne({ _id: employee._id });
             res.json({ message: 'Employee removed' });
         } else {

@@ -8,7 +8,7 @@ const Dashboard = () => {
 
     if (!user) return null;
 
-    if (user.role === 'Admin' || user.role === 'HR') {
+    if (user.role === 'Admin') {
         return <AdminDashboard />;
     }
 

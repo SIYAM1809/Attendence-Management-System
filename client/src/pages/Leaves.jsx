@@ -17,7 +17,7 @@ const Leaves = () => {
 
     const fetchLeaves = async () => {
         try {
-            const endpoint = (user.role === 'Admin' || user.role === 'HR') ? '/leaves' : '/leaves/my';
+            const endpoint = user.role === 'Admin' ? '/leaves' : '/leaves/my';
             const res = await api.get(endpoint);
             setLeaves(res.data);
         } catch (error) {
@@ -70,18 +70,18 @@ const Leaves = () => {
                 <table>
                     <thead>
                         <tr>
-                            {(user.role === 'Admin' || user.role === 'HR') && <th>Employee</th>}
+                            {user.role === 'Admin' && <th>Employee</th>}
                             <th>Type</th>
                             <th>Duration</th>
                             <th>Reason</th>
                             <th>Status</th>
-                            {(user.role === 'Admin' || user.role === 'HR') && <th>Actions</th>}
+                            {user.role === 'Admin' && <th>Actions</th>}
                         </tr>
                     </thead>
                     <tbody>
                         {leaves.map(leave => (
                             <tr key={leave._id}>
-                                {(user.role === 'Admin' || user.role === 'HR') && (
+                                {user.role === 'Admin' && (
                                     <td style={{ fontWeight: '500' }}>{leave.employeeId?.name}</td>
                                 )}
                                 <td>{leave.type}</td>
@@ -96,7 +96,7 @@ const Leaves = () => {
                                         {leave.status}
                                     </span>
                                 </td>
-                                {(user.role === 'Admin' || user.role === 'HR') && (
+                                {user.role === 'Admin' && (
                                     <td>
                                         {leave.status === 'Pending' && (
                                             <div style={{ display: 'flex', gap: '8px' }}>

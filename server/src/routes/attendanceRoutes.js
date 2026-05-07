@@ -6,11 +6,11 @@ const {
     getMyAttendance,
     getAllAttendance
 } = require('../controllers/attendanceController');
-const { protect, adminOrHR } = require('../middlewares/authMiddleware');
+const { protect, adminOnly } = require('../middlewares/authMiddleware');
 
 router.post('/check-in', protect, checkIn);
 router.put('/check-out', protect, checkOut);
 router.get('/my', protect, getMyAttendance);
-router.get('/', protect, adminOrHR, getAllAttendance);
+router.get('/', protect, adminOnly, getAllAttendance);
 
 module.exports = router;
