@@ -10,11 +10,15 @@ const Employees = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00'
+        name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: ''
     });
     const [performanceData, setPerformanceData] = useState(null);
     const [loadingPerformance, setLoadingPerformance] = useState(false);
     const { user } = useContext(AuthContext);
+
+    const existingDepartments = Array.from(new Set(employees.map(emp => emp.department).filter(d => d)));
+    const standardDepartments = ['IT', 'HR', 'Sales', 'Marketing', 'Finance', 'Operations', 'Engineering', 'Support', 'Admin'];
+    const departmentOptions = Array.from(new Set([...standardDepartments, ...existingDepartments])).sort();
 
     const fetchEmployees = async () => {
         try {
@@ -41,7 +45,7 @@ const Employees = () => {
             }
             setShowModal(false);
             setEditingId(null);
-            setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00' });
+            setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '' });
             fetchEmployees();
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to save employee');
@@ -56,7 +60,8 @@ const Employees = () => {
             role: emp.role,
             baseSalary: emp.baseSalary,
             shiftStartTime: emp.shiftStartTime,
-            shiftEndTime: emp.shiftEndTime
+            shiftEndTime: emp.shiftEndTime,
+            department: emp.department || ''
         });
         setEditingId(emp._id);
         setShowModal(true);
@@ -99,7 +104,7 @@ const Employees = () => {
                 {user?.role === 'Admin' && (
                     <button onClick={() => {
                         setEditingId(null);
-                        setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00' });
+                        setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '' });
                         setShowModal(true);
                     }} className="btn btn-primary">
                         <Plus size={20} /> Add Employee
@@ -113,6 +118,7 @@ const Employees = () => {
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Department</th>
                             <th>Role</th>
                             <th>Base Salary</th>
                             <th>Shift</th>
@@ -124,6 +130,7 @@ const Employees = () => {
                             <tr key={emp._id}>
                                 <td style={{ fontWeight: '500' }}>{emp.name}</td>
                                 <td style={{ color: 'var(--text-muted)' }}>{emp.email}</td>
+                                <td>{emp.department || 'N/A'}</td>
                                 <td><span className="badge badge-Present">{emp.role}</span></td>
                                 <td>৳ {emp.baseSalary}</td>
                                 <td>{emp.shiftStartTime} - {emp.shiftEndTime}</td>
@@ -166,6 +173,18 @@ const Employees = () => {
                                         
                                     </select>
                                 </div>
+                                <div>
+                                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Department</label>
+                                    <select className="input-field" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})}>
+                                        <option value="">Unassigned</option>
+                                        {departmentOptions.map(dept => (
+                                            <option key={dept} value={dept}>{dept}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Base Salary (৳)</label>
                                     <input type="number" className="input-field" required value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: e.target.value})} />

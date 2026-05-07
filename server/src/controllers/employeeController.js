@@ -85,7 +85,7 @@ const updateEmployee = async (req, res) => {
             employee.baseSalary = req.body.baseSalary !== undefined ? req.body.baseSalary : employee.baseSalary;
             employee.shiftStartTime = req.body.shiftStartTime || employee.shiftStartTime;
             employee.shiftEndTime = req.body.shiftEndTime || employee.shiftEndTime;
-            employee.department = req.body.department || employee.department;
+            if (req.body.department !== undefined) employee.department = req.body.department;
             employee.designation = req.body.designation || employee.designation;
 
             if (req.body.password) {

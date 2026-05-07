@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Clock, CalendarDays, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Clock, CalendarDays, LogOut } from 'lucide-react';
 
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -16,6 +16,7 @@ const Layout = () => {
 
     if (isAdmin) {
         navItems.splice(1, 0, { name: 'Employees', path: '/employees', icon: Users });
+        navItems.splice(2, 0, { name: 'Departments', path: '/departments', icon: Building2 });
     }
 
     return (
