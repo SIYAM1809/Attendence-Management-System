@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Departments from './pages/Departments';
 import DepartmentEmployees from './pages/DepartmentEmployees';
+import Announcements from './pages/Announcements';
 import Attendance from './pages/Attendance';
 import Leaves from './pages/Leaves';
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="employees" element={<ProtectedRoute roles={['Admin']}><Employees /></ProtectedRoute>} />
           <Route path="departments" element={<ProtectedRoute roles={['Admin']}><Departments /></ProtectedRoute>} />
           <Route path="departments/:departmentName" element={<ProtectedRoute roles={['Admin']}><DepartmentEmployees /></ProtectedRoute>} />
+          <Route path="announcements" element={<Announcements />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="leaves" element={<Leaves />} />
         </Route>

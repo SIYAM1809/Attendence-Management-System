@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, Clock, CalendarDays, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Megaphone, Clock, CalendarDays, LogOut } from 'lucide-react';
 
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -10,6 +10,7 @@ const Layout = () => {
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Announcements', path: '/announcements', icon: Megaphone },
         { name: isAdmin ? 'Attendance' : 'My Attendance', path: '/attendance', icon: Clock },
         { name: isAdmin ? 'Leaves' : 'My Leaves', path: '/leaves', icon: CalendarDays },
     ];

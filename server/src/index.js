@@ -21,6 +21,7 @@ app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/leaves', require('./routes/leaveRoutes'));
 app.use('/api/salary', require('./routes/salaryRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/announcements', require('./routes/announcementRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Attendance API is running...');
