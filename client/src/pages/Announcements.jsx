@@ -31,7 +31,15 @@ const Announcements = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/announcements', formData);
+            const res = await api.post('/announcements', formData);
+            const notice = res.data?.emailNotice;
+            if (notice && notice.sent === false) {
+                const msg = [notice.reason, notice.error, notice.hint].filter(Boolean).join('\n\n');
+                alert(
+                    msg ||
+                        'Announcement saved, but notification email was not sent (check server logs).'
+                );
+            }
             setShowModal(false);
             setFormData({ title: '', content: '' });
             fetchAnnouncements();
