@@ -1,4 +1,6 @@
 const Announcement = require('../models/Announcement');
+const User = require('../models/User');
+const sendEmail = require('../utils/emailSender');
 
 // @desc    Get all announcements
 // @route   GET /api/announcements
@@ -28,6 +30,42 @@ const createAnnouncement = async (req, res) => {
         });
 
         const populatedAnnouncement = await announcement.populate('createdBy', 'name role');
+
+        // Send announcement email to all active employees (non-blocking on errors)
+        try {
+            const employees = await User.find({ role: 'Employee', status: 'Active' }).select('email name');
+            const recipients = employees.map(e => e.email).filter(Boolean);
+
+            if (recipients.length > 0) {
+                const fromName = process.env.SMTP_FROM_NAME || 'Attendance System';
+                const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.EMAIL_USER;
+                const from = fromEmail ? `${fromName} <${fromEmail}>` : undefined;
+
+                const subject = `[Announcement] ${title}`;
+                const text = `${title}\n\n${content}\n\n— ${populatedAnnouncement.createdBy?.name || 'Admin'}`;
+                const html = `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+                        <h2 style="margin: 0 0 12px;">${title}</h2>
+                        <div style="white-space: pre-wrap; color: #111;">${content}</div>
+                        <p style="margin-top: 16px; color: #555;">
+                            — ${populatedAnnouncement.createdBy?.name || 'Admin'}
+                        </p>
+                    </div>
+                `;
+
+                // Use BCC to avoid leaking employee emails to each other
+                await sendEmail({
+                    from,
+                    to: fromEmail || process.env.EMAIL_USER,
+                    bcc: recipients,
+                    subject,
+                    message: text,
+                    html,
+                });
+            }
+        } catch (emailErr) {
+            console.error('Announcement email dispatch failed:', emailErr?.message || emailErr);
+        }
 
         res.status(201).json(populatedAnnouncement);
     } catch (error) {

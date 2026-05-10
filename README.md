@@ -61,6 +61,15 @@ This repository contains two main directories:
 - **Employee Portal**: Mark attendance, apply for leaves, view personal attendance reports.
 - **Authentication**: Role-based access control using JWT.
 - **Reporting**: Generate daily/monthly attendance reports.
+- **Announcement Emails**: When an admin creates an announcement, an email is automatically sent to all **Active** employees.
+
+## Announcement Email Setup
+- Configure either:
+  - **Gmail** via `EMAIL_USER` + `EMAIL_PASS` (use a Google “App Password”), or
+  - **SMTP** via `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` (recommended for production).
+- Optional sender customization:
+  - `SMTP_FROM_NAME`
+  - `SMTP_FROM_EMAIL`
 
 ## License
 MIT License
