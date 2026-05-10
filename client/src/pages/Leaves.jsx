@@ -10,6 +10,7 @@ const Leaves = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const { user } = useContext(AuthContext);
+    const canApplyLeave = user?.role !== 'Admin';
 
     const [formData, setFormData] = useState({
         startDate: '', endDate: '', type: 'Casual', reason: ''
@@ -33,6 +34,7 @@ const Leaves = () => {
 
     const handleApply = async (e) => {
         e.preventDefault();
+        if (!canApplyLeave) return;
         try {
             await api.post('/leaves', formData);
             setShowModal(false);
@@ -61,9 +63,11 @@ const Leaves = () => {
                     <p style={{ color: 'var(--text-muted)' }}>Manage time off and absences</p>
                 </div>
                 
-                <button onClick={() => setShowModal(true)} className="btn btn-primary">
-                    <CalendarPlus size={20} /> Apply Leave
-                </button>
+                {canApplyLeave && (
+                    <button onClick={() => setShowModal(true)} className="btn btn-primary">
+                        <CalendarPlus size={20} /> Apply Leave
+                    </button>
+                )}
             </div>
 
             <div className="glass-panel table-container" style={{ padding: '24px' }}>
@@ -117,7 +121,7 @@ const Leaves = () => {
             </div>
 
             {/* Apply Leave Modal */}
-            {showModal && createPortal(
+            {canApplyLeave && showModal && createPortal(
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                     <div className="glass-panel animate-fade-in" style={{ padding: '32px', width: '100%', maxWidth: '500px', marginTop: '50px', marginBottom: '50px' }}>
                         <h2 style={{ marginBottom: '24px' }}>Apply for Leave</h2>
