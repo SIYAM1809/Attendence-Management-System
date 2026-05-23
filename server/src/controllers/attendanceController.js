@@ -114,9 +114,55 @@ const getAllAttendance = async (req, res) => {
     }
 };
 
+// @desc    Update attendance record
+// @route   PUT /api/attendance/:id
+// @access  Private/Admin
+const updateAttendance = async (req, res) => {
+    try {
+        const { checkIn, checkOut, status, lateDuration } = req.body;
+        const attendance = await Attendance.findById(req.params.id);
+
+        if (!attendance) {
+            return res.status(404).json({ message: 'Attendance record not found' });
+        }
+
+        attendance.checkIn = checkIn || attendance.checkIn;
+        attendance.checkOut = checkOut || attendance.checkOut;
+        attendance.status = status || attendance.status;
+        if (lateDuration !== undefined) {
+            attendance.lateDuration = lateDuration;
+        }
+
+        const updatedAttendance = await attendance.save();
+        res.json(updatedAttendance);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete attendance record
+// @route   DELETE /api/attendance/:id
+// @access  Private/Admin
+const deleteAttendance = async (req, res) => {
+    try {
+        const attendance = await Attendance.findById(req.params.id);
+
+        if (!attendance) {
+            return res.status(404).json({ message: 'Attendance record not found' });
+        }
+
+        await Attendance.deleteOne({ _id: attendance._id });
+        res.json({ message: 'Attendance record deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     checkIn,
     checkOut,
     getMyAttendance,
-    getAllAttendance
+    getAllAttendance,
+    updateAttendance,
+    deleteAttendance
 };

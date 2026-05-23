@@ -1,8 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import { Plus, Edit2, Trash2, TrendingUp, X, FileText } from 'lucide-react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, TrendingUp, X } from 'lucide-react';
 
 const Employees = () => {
     const [employees, setEmployees] = useState([]);
@@ -10,11 +12,12 @@ const Employees = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: ''
+        name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '', joiningDate: format(new Date(), 'yyyy-MM-dd')
     });
     const [performanceData, setPerformanceData] = useState(null);
     const [loadingPerformance, setLoadingPerformance] = useState(false);
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const existingDepartments = Array.from(new Set(employees.map(emp => emp.department).filter(d => d)));
     const standardDepartments = ['IT', 'HR', 'Sales', 'Marketing', 'Finance', 'Operations', 'Engineering', 'Support', 'Admin'];
@@ -45,7 +48,7 @@ const Employees = () => {
             }
             setShowModal(false);
             setEditingId(null);
-            setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '' });
+            setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '', joiningDate: format(new Date(), 'yyyy-MM-dd') });
             fetchEmployees();
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to save employee');
@@ -61,7 +64,8 @@ const Employees = () => {
             baseSalary: emp.baseSalary,
             shiftStartTime: emp.shiftStartTime,
             shiftEndTime: emp.shiftEndTime,
-            department: emp.department || ''
+            department: emp.department || '',
+            joiningDate: emp.joiningDate ? format(new Date(emp.joiningDate), 'yyyy-MM-dd') : format(new Date(emp.createdAt), 'yyyy-MM-dd')
         });
         setEditingId(emp._id);
         setShowModal(true);
@@ -104,7 +108,7 @@ const Employees = () => {
                 {user?.role === 'Admin' && (
                     <button onClick={() => {
                         setEditingId(null);
-                        setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '' });
+                        setFormData({ name: '', email: '', password: '', role: 'Employee', baseSalary: 0, shiftStartTime: '09:00', shiftEndTime: '17:00', department: '', joiningDate: format(new Date(), 'yyyy-MM-dd') });
                         setShowModal(true);
                     }} className="btn btn-primary">
                         <Plus size={20} /> Add Employee
@@ -122,6 +126,7 @@ const Employees = () => {
                             <th>Role</th>
                             <th>Base Salary</th>
                             <th>Shift</th>
+                            <th>Joined On</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -134,9 +139,13 @@ const Employees = () => {
                                 <td><span className="badge badge-Present">{emp.role}</span></td>
                                 <td>৳ {emp.baseSalary}</td>
                                 <td>{emp.shiftStartTime} - {emp.shiftEndTime}</td>
+                                <td>{emp.joiningDate ? format(new Date(emp.joiningDate), 'MMM dd, yyyy') : format(new Date(emp.createdAt), 'MMM dd, yyyy')}</td>
                                 <td>
-                                    {user?.role === 'Admin' && emp.role !== 'Admin' && (
+                                    {(user?.role === 'Admin' || user?.role === 'HR') && emp.role !== 'Admin' && (
                                         <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button onClick={() => navigate(`/salary/${emp._id}`)} style={{ background: 'none', border: 'none', color: 'var(--warning)', cursor: 'pointer' }} title="View Payslip">
+                                                <FileText size={18} />
+                                            </button>
                                             <button onClick={() => handleViewPerformance(emp._id)} style={{ background: 'none', border: 'none', color: 'var(--success)', cursor: 'pointer' }} title="View Performance">
                                                 <TrendingUp size={18} />
                                             </button>
@@ -168,14 +177,28 @@ const Employees = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Role</label>
-                                    <select className="input-field" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
+                                    <select className="input-field" value={formData.role} onChange={e => {
+                                        const newRole = e.target.value;
+                                        setFormData(prev => ({
+                                            ...prev, 
+                                            role: newRole,
+                                            department: newRole === 'HR' ? 'HR' : (newRole === 'Admin' ? 'Admin' : prev.department)
+                                        }));
+                                    }}>
                                         <option value="Employee">Employee</option>
-                                        
+                                        <option value="HR">HR</option>
+                                        {user?.role === 'Admin' && <option value="Admin">Admin</option>}
                                     </select>
                                 </div>
                                 <div>
                                     <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Department</label>
-                                    <select className="input-field" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})}>
+                                    <select 
+                                        className="input-field" 
+                                        value={formData.department} 
+                                        onChange={e => setFormData({...formData, department: e.target.value})}
+                                        disabled={formData.role === 'HR' || formData.role === 'Admin'}
+                                        style={{ opacity: (formData.role === 'HR' || formData.role === 'Admin') ? 0.6 : 1, cursor: (formData.role === 'HR' || formData.role === 'Admin') ? 'not-allowed' : 'pointer' }}
+                                    >
                                         <option value="">Unassigned</option>
                                         {departmentOptions.map(dept => (
                                             <option key={dept} value={dept}>{dept}</option>
@@ -188,6 +211,10 @@ const Employees = () => {
                                 <div>
                                     <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Base Salary (৳)</label>
                                     <input type="number" className="input-field" required value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Joined On</label>
+                                    <input type="date" className="input-field" required value={formData.joiningDate} onClick={(e) => e.target.showPicker && e.target.showPicker()} onChange={e => setFormData({...formData, joiningDate: e.target.value})} />
                                 </div>
                             </div>
                             
@@ -224,7 +251,7 @@ const Employees = () => {
                             <div style={{ textAlign: 'center', padding: '40px' }}>Loading performance data...</div>
                         ) : (
                             <>
-                                <h2 style={{ marginBottom: '8px', fontSize: '1.8rem' }}>Performance Report</h2>
+                                <h2 style={{ marginBottom: '8px', fontSize: '1.8rem' }}>Attendance Report</h2>
                                 <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>{performanceData.employeeName} - {performanceData.month}</p>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px' }}>

@@ -3,15 +3,17 @@ const router = express.Router();
 const {
     getAnnouncements,
     createAnnouncement,
+    updateAnnouncement,
     deleteAnnouncement
 } = require('../controllers/announcementController');
-const { protect, adminOnly } = require('../middlewares/authMiddleware');
+const { protect, adminOnly, hrOrAdmin } = require('../middlewares/authMiddleware');
 
 router.route('/')
     .get(protect, getAnnouncements)
-    .post(protect, adminOnly, createAnnouncement);
+    .post(protect, hrOrAdmin, createAnnouncement);
 
 router.route('/:id')
-    .delete(protect, adminOnly, deleteAnnouncement);
+    .put(protect, hrOrAdmin, updateAnnouncement)
+    .delete(protect, hrOrAdmin, deleteAnnouncement);
 
 module.exports = router;

@@ -2,12 +2,13 @@ import { useState, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Megaphone, Plus, Trash2, Calendar } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Calendar, Edit2 } from 'lucide-react';
 
 const Announcements = () => {
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ title: '', content: '' });
     const { user } = useContext(AuthContext);
 
@@ -31,21 +32,32 @@ const Announcements = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.post('/announcements', formData);
-            const notice = res.data?.emailNotice;
-            if (notice && notice.sent === false) {
-                const msg = [notice.reason, notice.error, notice.hint].filter(Boolean).join('\n\n');
-                alert(
-                    msg ||
-                        'Announcement saved, but notification email was not sent (check server logs).'
-                );
+            if (editingId) {
+                await api.put(`/announcements/${editingId}`, formData);
+            } else {
+                const res = await api.post('/announcements', formData);
+                const notice = res.data?.emailNotice;
+                if (notice && notice.sent === false) {
+                    const msg = [notice.reason, notice.error, notice.hint].filter(Boolean).join('\n\n');
+                    alert(
+                        msg ||
+                            'Announcement saved, but notification email was not sent (check server logs).'
+                    );
+                }
             }
             setShowModal(false);
+            setEditingId(null);
             setFormData({ title: '', content: '' });
             fetchAnnouncements();
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to post announcement');
+            alert(error.response?.data?.message || 'Failed to save announcement');
         }
+    };
+
+    const handleEdit = (announcement) => {
+        setFormData({ title: announcement.title, content: announcement.content });
+        setEditingId(announcement._id);
+        setShowModal(true);
     };
 
     const handleDelete = async (id) => {
@@ -69,7 +81,11 @@ const Announcements = () => {
                     <p style={{ color: 'var(--text-muted)' }}>Company updates and important notices</p>
                 </div>
                 {isAdmin && (
-                    <button onClick={() => setShowModal(true)} className="btn btn-primary">
+                    <button onClick={() => {
+                        setEditingId(null);
+                        setFormData({ title: '', content: '' });
+                        setShowModal(true);
+                    }} className="btn btn-primary">
                         <Plus size={20} /> Post Announcement
                     </button>
                 )}
@@ -85,13 +101,22 @@ const Announcements = () => {
                     announcements.map(announcement => (
                         <div key={announcement._id} className="glass-panel" style={{ padding: '32px', position: 'relative' }}>
                             {isAdmin && (
-                                <button 
-                                    onClick={() => handleDelete(announcement._id)} 
-                                    style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-                                    title="Delete Announcement"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px' }}>
+                                    <button 
+                                        onClick={() => handleEdit(announcement)} 
+                                        style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(139, 92, 246, 0.1)' }}
+                                        title="Edit Announcement"
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(announcement._id)} 
+                                        style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '8px', borderRadius: '50%', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
+                                        title="Delete Announcement"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             )}
                             
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -123,7 +148,7 @@ const Announcements = () => {
             {showModal && createPortal(
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
                     <div className="glass-panel animate-fade-in" style={{ padding: '32px', width: '100%', maxWidth: '600px', marginTop: '50px', marginBottom: '50px' }}>
-                        <h2 style={{ marginBottom: '24px' }}>Post New Announcement</h2>
+                        <h2 style={{ marginBottom: '24px' }}>{editingId ? 'Edit Announcement' : 'Post New Announcement'}</h2>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
                                 <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Title</label>
@@ -150,7 +175,7 @@ const Announcements = () => {
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                                <button type="submit" className="btn btn-primary" style={{ flex: 1, backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' }}>Post Announcement</button>
+                                <button type="submit" className="btn btn-primary" style={{ flex: 1, backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' }}>{editingId ? 'Save Changes' : 'Post Announcement'}</button>
                                 <button type="button" className="btn" onClick={() => setShowModal(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'white' }}>Cancel</button>
                             </div>
                         </form>

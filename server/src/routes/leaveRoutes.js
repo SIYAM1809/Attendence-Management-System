@@ -4,17 +4,22 @@ const {
     applyLeave,
     getMyLeaves,
     getAllLeaves,
-    updateLeaveStatus
+    updateLeaveStatus,
+    deleteLeave,
+    updateLeave
 } = require('../controllers/leaveController');
-const { protect, adminOnly } = require('../middlewares/authMiddleware');
+const { protect, adminOnly, hrOrAdmin } = require('../middlewares/authMiddleware');
 
 router.route('/')
     .post(protect, applyLeave)
-    .get(protect, adminOnly, getAllLeaves);
+    .get(protect, hrOrAdmin, getAllLeaves);
 
 router.get('/my', protect, getMyLeaves);
 
 router.route('/:id')
-    .put(protect, adminOnly, updateLeaveStatus);
+    .put(protect, updateLeaveStatus)
+    .delete(protect, deleteLeave);
+
+router.put('/edit/:id', protect, updateLeave);
 
 module.exports = router;

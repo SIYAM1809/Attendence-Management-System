@@ -153,8 +153,32 @@ const deleteAnnouncement = async (req, res) => {
     }
 };
 
+// @desc    Update an announcement
+// @route   PUT /api/announcements/:id
+// @access  Private/Admin
+const updateAnnouncement = async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const announcement = await Announcement.findById(req.params.id);
+
+        if (announcement) {
+            announcement.title = title || announcement.title;
+            announcement.content = content || announcement.content;
+
+            const updatedAnnouncement = await announcement.save();
+            const populatedAnnouncement = await updatedAnnouncement.populate('createdBy', 'name role');
+            res.json(populatedAnnouncement);
+        } else {
+            res.status(404).json({ message: 'Announcement not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getAnnouncements,
     createAnnouncement,
+    updateAnnouncement,
     deleteAnnouncement
 };

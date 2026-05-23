@@ -5,7 +5,14 @@ const User = require('../models/User');
 // @access  Private/Admin
 const getEmployees = async (req, res) => {
     try {
-        const employees = await User.find({}).select('-password');
+        let query = {};
+        if (req.user.role === 'Admin') {
+            query = { _id: { $ne: req.user._id } };
+        } else {
+            query = { role: { $nin: ['Admin', 'HR'] } };
+        }
+
+        const employees = await User.find(query).select('-password');
         res.json(employees);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -33,7 +40,7 @@ const getEmployeeById = async (req, res) => {
 // @access  Private/Admin
 const createEmployee = async (req, res) => {
     try {
-        const { name, email, password, role, baseSalary, shiftStartTime, shiftEndTime, department, designation } = req.body;
+        const { name, email, password, role, baseSalary, shiftStartTime, shiftEndTime, department, designation, joiningDate } = req.body;
 
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -49,7 +56,8 @@ const createEmployee = async (req, res) => {
             shiftStartTime: shiftStartTime || '09:00',
             shiftEndTime: shiftEndTime || '17:00',
             department: department || '',
-            designation: designation || ''
+            designation: designation || '',
+            joiningDate: joiningDate || Date.now()
         });
 
         if (employee) {
@@ -87,6 +95,7 @@ const updateEmployee = async (req, res) => {
             employee.shiftEndTime = req.body.shiftEndTime || employee.shiftEndTime;
             if (req.body.department !== undefined) employee.department = req.body.department;
             employee.designation = req.body.designation || employee.designation;
+            if (req.body.joiningDate) employee.joiningDate = req.body.joiningDate;
 
             if (req.body.password) {
                 employee.password = req.body.password;

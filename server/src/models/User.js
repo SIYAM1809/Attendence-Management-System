@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['Admin', 'Employee'],
+        enum: ['Admin', 'HR', 'Employee'],
         default: 'Employee'
     },
     status: {
@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema({
     designation: {
         type: String,
         default: ''
+    },
+    joiningDate: {
+        type: Date,
+        default: Date.now
     }
 }, { timestamps: true });
 

@@ -7,16 +7,17 @@ const Layout = () => {
     const { user, logout } = useContext(AuthContext);
 
     const isAdmin = user?.role === 'Admin';
+    const isManager = user?.role === 'Admin' || user?.role === 'HR';
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { name: 'Announcements', path: '/announcements', icon: Megaphone },
-        { name: isAdmin ? 'Attendance' : 'My Attendance', path: '/attendance', icon: Clock },
-        { name: isAdmin ? 'Leaves' : 'My Leaves', path: '/leaves', icon: CalendarDays },
+        { name: isManager ? 'Attendance' : 'My Attendance', path: '/attendance', icon: Clock },
+        { name: isManager ? 'Leaves' : 'My Leaves', path: '/leaves', icon: CalendarDays },
     ];
 
-    if (isAdmin) {
-        navItems.splice(1, 0, { name: 'Employees', path: '/employees', icon: Users });
+    if (isManager) {
+        navItems.splice(1, 0, { name: 'Employee', path: '/employees', icon: Users });
         navItems.splice(2, 0, { name: 'Departments', path: '/departments', icon: Building2 });
     }
 

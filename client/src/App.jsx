@@ -10,6 +10,7 @@ import DepartmentEmployees from './pages/DepartmentEmployees';
 import Announcements from './pages/Announcements';
 import Attendance from './pages/Attendance';
 import Leaves from './pages/Leaves';
+import SalaryDetails from './pages/SalaryDetails';
 
 const ProtectedRoute = ({ children, roles }) => {
   const { user, loading } = useContext(AuthContext);
@@ -36,12 +37,14 @@ function App() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard" />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="employees" element={<ProtectedRoute roles={['Admin']}><Employees /></ProtectedRoute>} />
-          <Route path="departments" element={<ProtectedRoute roles={['Admin']}><Departments /></ProtectedRoute>} />
-          <Route path="departments/:departmentName" element={<ProtectedRoute roles={['Admin']}><DepartmentEmployees /></ProtectedRoute>} />
+          <Route path="employees" element={<ProtectedRoute roles={['Admin', 'HR']}><Employees /></ProtectedRoute>} />
+          <Route path="departments" element={<ProtectedRoute roles={['Admin', 'HR']}><Departments /></ProtectedRoute>} />
+          <Route path="departments/:departmentName" element={<ProtectedRoute roles={['Admin', 'HR']}><DepartmentEmployees /></ProtectedRoute>} />
           <Route path="announcements" element={<Announcements />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="leaves" element={<Leaves />} />
+          <Route path="salary" element={<SalaryDetails />} />
+          <Route path="salary/:id" element={<ProtectedRoute roles={['Admin', 'HR']}><SalaryDetails /></ProtectedRoute>} />
         </Route>
       </Routes>
     </Router>

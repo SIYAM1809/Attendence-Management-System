@@ -24,14 +24,35 @@ const getDashboardStats = async (req, res) => {
             }
         });
 
-        // Abstract: Absent = Total Employees - Present
-        const absentCount = totalEmployees - presentCount;
+        // Fetch leaves for today
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+        const Leave = require('../models/Leave');
+        const leavesToday = await Leave.find({
+            status: 'Approved',
+            startDate: { $lte: endOfToday },
+            endDate: { $gte: today }
+        }).populate('employeeId', 'name email department');
+
+        const onLeaveEmployees = leavesToday.filter(l => l.employeeId).map(l => ({
+            id: l.employeeId._id,
+            name: l.employeeId.name,
+            department: l.employeeId.department,
+            type: l.type
+        }));
+        
+        const onLeaveCount = onLeaveEmployees.length;
+
+        // Abstract: Absent = Total Employees - Present - On Leave
+        const absentCount = Math.max(0, totalEmployees - presentCount - onLeaveCount);
 
         res.json({
             totalEmployees,
             presentCount,
             absentCount,
-            lateCount
+            lateCount,
+            onLeaveCount,
+            onLeaveEmployees
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -72,12 +93,44 @@ const getEmployeePerformance = async (req, res) => {
         const today = new Date();
         let daysPassed = today.getDate();
         let workingDaysPassed = 0;
+        
+        const joinDate = employee.joiningDate || employee.createdAt;
+        const joinStart = new Date(joinDate);
+        joinStart.setHours(0, 0, 0, 0);
+
+        const Leave = require('../models/Leave');
+        const approvedLeaves = await Leave.find({
+            employeeId,
+            status: 'Approved',
+            $or: [
+                { startDate: { $lte: today }, endDate: { $gte: startOfMonth } }
+            ]
+        });
+
+        let leaveDaysPassed = 0;
         for(let i = 1; i <= daysPassed; i++) {
             const d = new Date(today.getFullYear(), today.getMonth(), i);
-            if(d.getDay() !== 0 && d.getDay() !== 6) workingDaysPassed++;
+            const dStart = new Date(d);
+            dStart.setHours(0, 0, 0, 0);
+
+            if (dStart >= joinStart) {
+                if(d.getDay() !== 0 && d.getDay() !== 6) {
+                    workingDaysPassed++;
+                    
+                    // Check if on approved leave
+                    for (const leave of approvedLeaves) {
+                        const ls = new Date(leave.startDate); ls.setHours(0,0,0,0);
+                        const le = new Date(leave.endDate); le.setHours(0,0,0,0);
+                        if (dStart >= ls && dStart <= le) {
+                            leaveDaysPassed++;
+                            break;
+                        }
+                    }
+                }
+            }
         }
         
-        const absentDays = Math.max(0, workingDaysPassed - presentDays);
+        const absentDays = Math.max(0, workingDaysPassed - presentDays - leaveDaysPassed);
 
         let score = 100;
         score -= (absentDays * 10); 

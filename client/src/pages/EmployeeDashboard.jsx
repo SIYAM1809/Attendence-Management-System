@@ -1,7 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Wallet } from 'lucide-react';
+import { Wallet, Calendar, ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const EmployeeDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -27,9 +29,18 @@ const EmployeeDashboard = () => {
     return (
         <div className="animate-fade-in">
             <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Welcome back, {user.name}</h1>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Calendar size={16} /> 
+                Appointed on: {user.joiningDate ? format(new Date(user.joiningDate), 'MMMM dd, yyyy') : (user.createdAt ? format(new Date(user.createdAt), 'MMMM dd, yyyy') : 'N/A')}
+            </p>
             <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>Here is your personal attendance and salary overview for this month.</p>
 
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Salary Prediction</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '1.5rem' }}>Salary Prediction</h2>
+                <Link to="/salary" className="btn" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    View Detailed Breakdown <ArrowRight size={16} />
+                </Link>
+            </div>
             {salaryPrediction ? (
                 <div className="glass-panel" style={{ padding: '32px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '32px' }}>

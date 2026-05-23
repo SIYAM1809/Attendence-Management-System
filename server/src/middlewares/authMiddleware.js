@@ -31,4 +31,12 @@ const adminOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, adminOnly };
+const hrOrAdmin = (req, res, next) => {
+    if (req.user && (req.user.role === 'Admin' || req.user.role === 'HR')) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Not authorized as HR or Admin' });
+    }
+};
+
+module.exports = { protect, adminOnly, hrOrAdmin };
